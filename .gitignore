@@ -1,0 +1,11 @@
+# Binaries
+*.out
+
+# Logs
+*.log
+
+# CMake build directory
+_builds/
+
+# Vim backup files
+*.sw*
