@@ -9,3 +9,6 @@ _builds/
 
 # Vim backup files
 *.sw*
+
+# YouCompleteMe
+.ycm_extra_conf.py
