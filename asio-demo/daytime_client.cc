@@ -1,6 +1,7 @@
-#include <boost/array.hpp>
-#include <boost/asio.hpp>
+#include <array>
 #include <iostream>
+
+#include <boost/asio.hpp>
 
 using boost::asio::ip::tcp;
 
@@ -19,7 +20,7 @@ int main(int argc, char* argv[]) {
   boost::asio::connect(socket, endpoints);
 
   for (;;) {
-    boost::array<char, 128> buf;
+    std::array<char, 128> buf;
     boost::system::error_code error;
 
     const auto len = socket.read_some(boost::asio::buffer(buf), error);
