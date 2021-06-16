@@ -14,3 +14,4 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 add_executable(daytime_server daytime_server.cc)
 add_executable(daytime_client daytime_client.cc)
+add_executable(periodical_task periodical_task.cc)
