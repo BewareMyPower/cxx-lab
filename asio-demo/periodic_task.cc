@@ -7,12 +7,12 @@
 
 #include "simple_logger.h"
 
-class PeriodicalTask : public std::enable_shared_from_this<PeriodicalTask> {
+class PeriodicTask : public std::enable_shared_from_this<PeriodicTask> {
  public:
-  static std::shared_ptr<PeriodicalTask> create(
+  static std::shared_ptr<PeriodicTask> create(
       boost::asio::io_context& io_context, int period_ms) {
-    return std::shared_ptr<PeriodicalTask>(
-        new PeriodicalTask(io_context, period_ms));
+    return std::shared_ptr<PeriodicTask>(
+        new PeriodicTask(io_context, period_ms));
   }
 
   void run() {
@@ -29,15 +29,15 @@ class PeriodicalTask : public std::enable_shared_from_this<PeriodicalTask> {
   boost::asio::steady_timer timer_;
   int period_ms_;
 
-  PeriodicalTask(boost::asio::io_context& io_context, int period_ms)
+  PeriodicTask(boost::asio::io_context& io_context, int period_ms)
       : timer_(io_context, boost::asio::chrono::milliseconds(period_ms)),
         period_ms_(period_ms) {}
 
   void handle(const boost::system::error_code& ec) {
     if (ec == boost::asio::error::operation_aborted) {
-      LOG_DEBUG("PeriodicalTask is cancelled");
+      LOG_DEBUG("PeriodicTask is cancelled");
     } else if (ec) {
-      LOG_ERROR("PeriodicalTask encountered error", ec.message());
+      LOG_ERROR("PeriodicTask encountered error", ec.message());
     } else {
       auto self = shared_from_this();
       LOG_INFO("Triggered for", ++count_, "times, refcnt is", self.use_count());
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
 
   boost::asio::io_context io_context;
 
-  const auto task = PeriodicalTask::create(io_context, std::stoi(argv[2]));
+  const auto task = PeriodicTask::create(io_context, std::stoi(argv[2]));
   task->run();
 
   boost::asio::steady_timer total_timer(
