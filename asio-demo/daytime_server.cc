@@ -6,26 +6,19 @@
 #include "async_write_message.h"
 #include "simple_logger.h"
 #include "string_helper.h"
+#include "tcp_server.h"
 
 using boost::asio::ip::tcp;
 using string_helper::join;
 
-inline std::string make_daytime_string() {
-  auto now = std::time(nullptr);
-  return std::ctime(&now);
-}
-
-class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
+class DaytimeConnection : public TcpConnection {
  public:
-  static auto create(boost::asio::io_context& io_context, int id) {
-    return std::shared_ptr<TcpConnection>(new TcpConnection(io_context, id));
-  }
+  DaytimeConnection(boost::asio::io_context& io_context)
+      : TcpConnection(io_context) {}
 
-  auto& socket() { return socket_; }
-
-  void start() {
-    message_ = make_daytime_string();
-    asyncWrite(socket_, message_.c_str(),
+  void run() override {
+    const std::string message = makeDaytimeString();
+    asyncWrite(socket_, message.c_str(),
                [this](const boost::system::error_code& error, std::size_t n) {
                  LOG_DEBUG("connection", join("[", id_, "]"),
                            "async_write with callback");
@@ -38,45 +31,32 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
   }
 
  private:
-  TcpConnection(boost::asio::io_context& io_context, int id)
-      : socket_(io_context), id_(id) {}
+  static std::atomic_int count;
+  const int id_{count++};
 
-  tcp::socket socket_;
-  const int id_;
-  std::string message_;
+  static std::string makeDaytimeString() {
+    auto now = std::time(nullptr);
+    return std::ctime(&now);
+  }
 };
 
-class TcpServer {
+std::atomic_int DaytimeConnection::count{0};
+
+class DaytimeServer : public TcpServer {
  public:
-  TcpServer(boost::asio::io_context& io_context)
-      : io_context_(io_context),
-        acceptor_(io_context_, tcp::endpoint(tcp::v4(), 13)) {
-    startAccept();
-  }
+  DaytimeServer(boost::asio::io_context& io_context)
+      : TcpServer(io_context, 13) {}
 
- private:
-  boost::asio::io_context& io_context_;
-  tcp::acceptor acceptor_;
-
-  void startAccept() {
-    static std::atomic_int connection_id{0};
-    const auto new_connection =
-        TcpConnection::create(io_context_, connection_id++);
-
-    acceptor_.async_accept(
-        new_connection->socket(),
-        [this, new_connection](const boost::system::error_code& error) {
-          if (!error) {
-            new_connection->start();
-          }
-          startAccept();
-        });
+  std::shared_ptr<TcpConnection> newConnection() override {
+    return std::shared_ptr<DaytimeConnection>{
+        new DaytimeConnection(io_context_)};
   }
 };
 
 int main(int argc, char* argv[]) {
   boost::asio::io_context io_context;
-  TcpServer server(io_context);
+  DaytimeServer server(io_context);
+  server.startAccept();
   io_context.run();
   return 0;
 }
