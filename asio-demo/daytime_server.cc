@@ -1,10 +1,14 @@
 #include <boost/asio.hpp>
 #include <ctime>
-#include <iostream>
 #include <memory>
 #include <string>
 
+#include "async_write_message.h"
+#include "simple_logger.h"
+#include "string_helper.h"
+
 using boost::asio::ip::tcp;
+using string_helper::join;
 
 inline std::string make_daytime_string() {
   auto now = std::time(nullptr);
@@ -13,33 +17,32 @@ inline std::string make_daytime_string() {
 
 class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
  public:
-  static auto create(boost::asio::io_context& io_context) {
-    return std::shared_ptr<TcpConnection>(new TcpConnection(io_context));
+  static auto create(boost::asio::io_context& io_context, int id) {
+    return std::shared_ptr<TcpConnection>(new TcpConnection(io_context, id));
   }
 
   auto& socket() { return socket_; }
 
   void start() {
     message_ = make_daytime_string();
-
-    auto self = shared_from_this();
-    boost::asio::async_write(
-        socket_, boost::asio::buffer(message_),
-        [this, self](const boost::system::error_code& error,
-                     std::size_t bytes_transferred) {
-          if (error) {
-            std::cerr << "[ERROR] Failed to write: " << error << std::endl;
-          } else {
-            std::cout << "[DEBUG] write " << bytes_transferred
-                      << " bytes to client" << std::endl;
-          }
-        });
+    asyncWrite(socket_, message_.c_str(),
+               [this](const boost::system::error_code& error, std::size_t n) {
+                 LOG_DEBUG("connection", join("[", id_, "]"),
+                           "async_write with callback");
+                 if (!error) {
+                   LOG_DEBUG(n, "bytes transferred");
+                 } else {
+                   LOG_ERROR(error.message());
+                 }
+               });
   }
 
  private:
-  TcpConnection(boost::asio::io_context& io_context) : socket_(io_context) {}
+  TcpConnection(boost::asio::io_context& io_context, int id)
+      : socket_(io_context), id_(id) {}
 
   tcp::socket socket_;
+  const int id_;
   std::string message_;
 };
 
@@ -56,7 +59,9 @@ class TcpServer {
   tcp::acceptor acceptor_;
 
   void startAccept() {
-    const auto new_connection = TcpConnection::create(io_context_);
+    static std::atomic_int connection_id{0};
+    const auto new_connection =
+        TcpConnection::create(io_context_, connection_id++);
 
     acceptor_.async_accept(
         new_connection->socket(),
