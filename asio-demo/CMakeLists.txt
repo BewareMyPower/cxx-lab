@@ -18,3 +18,4 @@ include_directories(
 add_executable(daytime_server src/daytime_server.cc)
 add_executable(daytime_client src/daytime_client.cc)
 add_executable(periodic_task src/periodic_task.cc)
+add_executable(connect_timeout src/connect_timeout.cc)
