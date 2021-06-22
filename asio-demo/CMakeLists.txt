@@ -10,8 +10,11 @@ find_package(Boost REQUIRED)
 message(STATUS "Boost version: ${Boost_VERSION}")
 
 message(STATUS "Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
-include_directories(${Boost_INCLUDE_DIRS})
+include_directories(
+    ${CMAKE_SOURCE_DIR}/include
+    ${Boost_INCLUDE_DIRS}
+)
 
-add_executable(daytime_server daytime_server.cc)
-add_executable(daytime_client daytime_client.cc)
-add_executable(periodic_task periodic_task.cc)
+add_executable(daytime_server src/daytime_server.cc)
+add_executable(daytime_client src/daytime_client.cc)
+add_executable(periodic_task src/periodic_task.cc)
