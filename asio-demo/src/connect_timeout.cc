@@ -2,8 +2,8 @@
 
 #include "simple_logger.h"
 
-using boost::asio::ip::tcp;
 using boost::asio::steady_timer;
+using boost::asio::ip::tcp;
 using ErrorCode = boost::system::error_code;
 
 class Client {
@@ -15,6 +15,7 @@ class Client {
     endpoints_ = endpoints;
     period_ms_ = period_ms;
     if (period_ms_ > 0) {
+      timer_.expires_at(steady_timer::time_point::max());
       timer_.async_wait([this](const ErrorCode& ec) { handleWait(); });
     }
     connect(endpoints_.begin());
@@ -53,18 +54,6 @@ class Client {
     timer_.async_wait([this](const ErrorCode& ec) { handleWait(); });
   }
 
-  void handle_connect(const ErrorCode& ec,
-                      tcp::resolver::results_type::iterator endpoint_iter) {
-    if (stopped_) {
-      return;
-    }
-
-    if (!socket_.is_open()) {
-      LOG_WARN("Connect timed out");
-      connect(++endpoint_iter);
-    }
-  }
-
   void connect(tcp::resolver::results_type::iterator endpoint_iter) {
     if (endpoint_iter == endpoints_.end()) {
       stop();
@@ -72,7 +61,9 @@ class Client {
     }
     LOG_DEBUG("connect to", endpoint_iter->endpoint());
 
-    timer_.expires_after(boost::asio::chrono::milliseconds(period_ms_));
+    if (period_ms_ >= 0) {
+      timer_.expires_after(boost::asio::chrono::milliseconds(period_ms_));
+    }
 
     socket_.async_connect(
         endpoint_iter->endpoint(), [this, endpoint_iter](const ErrorCode& ec) {
