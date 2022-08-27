@@ -6,7 +6,6 @@
 // The lifetime of widgets are managed by the manager. Once a widget was
 // expired, i.e. the task was completed, the widget would be removed from the
 // cache of the manager.
-// TODO: remove the widget from the manager
 #include <chrono>
 #include <iostream>
 #include <map>
@@ -24,12 +23,14 @@ class Widget : public std::enable_shared_from_this<Widget> {
   }
 
  public:
-  Widget(const std::string& name) : name_(name) {
+  Widget(const std::string& name, WidgetManager& manager)
+      : name_(name), manager_(manager) {
     std::cout << "Construct Widget " << name << " @ " << this << std::endl;
   }
 
   ~Widget() {
     std::cout << "Destruct Widget " << name_ << " @ " << this << std::endl;
+    unregister();
   }
 
   void run() {
@@ -53,7 +54,10 @@ class Widget : public std::enable_shared_from_this<Widget> {
 
  private:
   std::string name_;
+  WidgetManager& manager_;
   static std::atomic_int num_tasks;
+
+  void unregister();
 };
 
 std::atomic_int Widget::num_tasks{0};
@@ -68,6 +72,8 @@ class WidgetManager {
       if (widget) {
         os << "\n  " << name << " => " << widget
            << " refcnt: " << widget.use_count();
+      } else {
+        os << "\n  " << name << " => (null)";
       }
     }
     return os;
@@ -88,15 +94,30 @@ class WidgetManager {
       }
     }
 
-    auto widget = std::make_shared<Widget>(name);
+    auto widget = std::make_shared<Widget>(name, *this);
     widgets_.emplace(name, widget);
     return widget;
+  }
+
+  auto remove(const std::string& name, Widget* widget_to_remove) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto iter = widgets_.find(name);
+    if (iter != widgets_.end()) {
+      auto widget = iter->second.lock();
+      if (widget && widget.get() == widget_to_remove) {
+        widgets_.erase(name);
+        std::cout << "Remove " << name << " " << (*widget_to_remove)
+                  << std::endl;
+      }
+    }
   }
 
  private:
   mutable std::mutex mutex_;
   std::map<std::string, std::weak_ptr<Widget>> widgets_;
 };
+
+void Widget::unregister() { manager_.remove(name_, this); }
 
 int main(int argc, char* argv[]) {
   WidgetManager manager;
