@@ -1,19 +1,25 @@
 #pragma once
 
+#include <stdio.h>
+
 #include <chrono>
-#include <iostream>
+#include <sstream>
 #include <thread>
 
 namespace impl {
 
+thread_local std::ostringstream log_stream;
+
 template <typename T>
 inline void log(const char* prefix, T&& arg) {
-  std::cout << prefix << std::forward<T>(arg) << std::endl;
+  log_stream << prefix << std::forward<T>(arg) << "\n";
+  fputs(log_stream.str().c_str(), stdout);
+  log_stream.str("");
 }
 
 template <typename T, typename... Args>
 inline void log(const char* prefix, T&& first, Args&&... rest) {
-  std::cout << prefix << first;
+  log_stream << prefix << first;
   log(" ", std::forward<Args>(rest)...);
 }
 

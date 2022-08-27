@@ -1,4 +1,5 @@
 #include <boost/asio.hpp>
+#include <iostream>
 
 #include "simple_logger.h"
 
