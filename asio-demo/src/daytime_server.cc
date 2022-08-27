@@ -5,11 +5,9 @@
 
 #include "async_write_message.h"
 #include "simple_logger.h"
-#include "string_helper.h"
 #include "tcp_server.h"
 
 using boost::asio::ip::tcp;
-using string_helper::join;
 
 class DaytimeConnection : public TcpConnection {
  public:
@@ -20,7 +18,7 @@ class DaytimeConnection : public TcpConnection {
     const std::string message = makeDaytimeString();
     asyncWrite(socket_, message.c_str(),
                [this](const boost::system::error_code& error, std::size_t n) {
-                 LOG_DEBUG("connection", join("[", id_, "]"),
+                 LOG_DEBUG("connection[", id_, "]",
                            "async_write with callback");
                  if (!error) {
                    LOG_DEBUG(n, "bytes transferred");

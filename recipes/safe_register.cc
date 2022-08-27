@@ -67,7 +67,7 @@ class WidgetManager {
                                   const WidgetManager& manager) {
     std::lock_guard<std::mutex> lock(manager.mutex_);
     os << "WidgetManager";
-    for (auto && [ name, weak_widget ] : manager.widgets_) {
+    for (auto&& [name, weak_widget] : manager.widgets_) {
       auto widget = weak_widget.lock();
       if (widget) {
         os << "\n  " << name << " => " << widget
