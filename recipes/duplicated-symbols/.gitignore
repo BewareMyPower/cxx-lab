@@ -1,0 +1,10 @@
+# The CMake build directory in ./build.sh
+build/
+
+*.o
+*.a
+*.so
+*.dylib
+*.out
+
+.ccls
