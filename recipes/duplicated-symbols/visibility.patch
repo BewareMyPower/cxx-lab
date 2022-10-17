@@ -1,0 +1,46 @@
+diff --git a/recipes/duplicated-symbols/CMakeLists.txt b/recipes/duplicated-symbols/CMakeLists.txt
+index 2968959..47cf12a 100644
+--- a/recipes/duplicated-symbols/CMakeLists.txt
++++ b/recipes/duplicated-symbols/CMakeLists.txt
+@@ -4,6 +4,8 @@ project(RepeatedSymbol)
+ 
+ set(CMAKE_CXX_STANDARD 11)
+ 
++add_compile_options(-fvisibility=hidden)
++
+ add_subdirectory(common)
+ add_subdirectory(common-v1)
+ add_subdirectory(plugin1)
+diff --git a/recipes/duplicated-symbols/common-v1/CMakeLists.txt b/recipes/duplicated-symbols/common-v1/CMakeLists.txt
+index 3ada844..d5b86ff 100644
+--- a/recipes/duplicated-symbols/common-v1/CMakeLists.txt
++++ b/recipes/duplicated-symbols/common-v1/CMakeLists.txt
+@@ -1 +1,2 @@
+ add_library(common-v1 STATIC common.cc)
++set_target_properties(common-v1 PROPERTIES OUTPUT_NAME "common")
+diff --git a/recipes/duplicated-symbols/plugin1/plugin1.h b/recipes/duplicated-symbols/plugin1/plugin1.h
+index aa95771..7693674 100644
+--- a/recipes/duplicated-symbols/plugin1/plugin1.h
++++ b/recipes/duplicated-symbols/plugin1/plugin1.h
+@@ -3,7 +3,7 @@
+ 
+ namespace plugin1 {
+ 
+-void run();
++__attribute__((visibility("default"))) void run();
+ 
+ }
+ 
+diff --git a/recipes/duplicated-symbols/plugin2/plugin2.h b/recipes/duplicated-symbols/plugin2/plugin2.h
+index ff2726e..a81eace 100644
+--- a/recipes/duplicated-symbols/plugin2/plugin2.h
++++ b/recipes/duplicated-symbols/plugin2/plugin2.h
+@@ -3,7 +3,7 @@
+ 
+ namespace plugin2 {
+ 
+-void run();
++__attribute__((visibility("default"))) void run();
+ 
+ }
+ 
