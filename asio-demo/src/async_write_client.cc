@@ -33,19 +33,25 @@ int main(int argc, char* argv[]) {
   }
 
   std::atomic_int num_sent{0};
-  for (int i = 0; i < 100; i++) {
-    std::string s(1000, 'a' + i % 25);
-    s.back() = '\n';
-    // TODO: transfer_all, the following logic is wrong
+  std::string messages[2];
+  messages[0].resize(1048576, 'a');
+  messages[0].back() = '\n';
+  messages[1].resize(100, 'b');
+  messages[1].back() = '\n';
+
+  constexpr int kNumLines = 10;
+  for (int i = 0; i < kNumLines; i++) {
+    // TODO: message disorder
+    auto& msg = messages[i % 2];
     boost::asio::async_write(socket,
-                             boost::asio::const_buffer(s.data(), s.size()),
+                             boost::asio::const_buffer(msg.data(), msg.size()),
                              [i, &num_sent](const boost::system::error_code& ec,
                                             size_t bytes_transferred) {
                                LOG_INFO(i, ec.message(), bytes_transferred);
                                num_sent++;
                              });
   }
-  while (num_sent < 100) {
+  while (num_sent < kNumLines) {
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
   io.stop();
