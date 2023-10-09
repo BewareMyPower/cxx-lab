@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.5)
 project(asio-demo)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -31,3 +31,5 @@ add_executable(async_write_client src/async_write_client.cc)
 target_link_libraries(async_write_client PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 add_executable(thread_pool src/thread_pool.cc)
 target_link_libraries(thread_pool PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+add_executable(tcp_e2e src/tcp_e2e.cc)
+target_link_libraries(tcp_e2e PRIVATE ${CMAKE_THREAD_LIBS_INIT})
