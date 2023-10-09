@@ -1,12 +1,11 @@
 #include <stdio.h>
 
-#include <boost/asio.hpp>
+#include <asio.hpp>
 #include <future>
 
-namespace asio = boost::asio;
+using asio::error_code;
 using asio::io_context;
 using asio::ip::tcp;
-using boost::system::error_code;
 
 constexpr int kPort = 11111;
 

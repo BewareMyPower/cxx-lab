@@ -4,6 +4,15 @@ project(asio-demo)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 14)
 
+include(FetchContent)
+FetchContent_Declare(
+    asio
+    GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git
+    GIT_TAG 1f8d154829b902dbc45a651587c6c6df948358e8 # asio 1.28.1
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/thirdparty
+)
+FetchContent_MakeAvailable(asio)
+
 find_package(Boost REQUIRED)
 message(STATUS "Boost version: ${Boost_VERSION}")
 
@@ -11,6 +20,7 @@ message(STATUS "Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
     ${Boost_INCLUDE_DIRS}
+    ${asio_SOURCE_DIR}/asio/include
 )
 
 find_package(Threads REQUIRED)
