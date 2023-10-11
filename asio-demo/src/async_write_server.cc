@@ -19,7 +19,8 @@ int main(int argc, char* argv[]) {
   boost::system::error_code ec;
   while (true) {
     char buf[1024];
-    auto len = socket.read_some(boost::asio::buffer(buf, sizeof(buf)), ec);
+    constexpr auto kMaxReadSize = sizeof(buf) - 1;
+    auto len = socket.read_some(boost::asio::buffer(buf, kMaxReadSize), ec);
     if (ec) {
       if (ec == boost::asio::error::eof) {
         std::cout << ec.message() << std::endl;
@@ -28,12 +29,14 @@ int main(int argc, char* argv[]) {
         throw std::runtime_error("Failed to read " + ec.message());
       }
     }
-    buf[len] = '\0';
+    if (len < sizeof(buf)) {
+      buf[len] = '\0';
+    } else {
+      throw std::runtime_error("read_some returns " + std::to_string(len));
+    }
     std::cout << buf;
     std::cout.flush();
   }
-  // TODO: it might cause segfault.
-  // See https://github.com/chriskohlhoff/asio/issues/1347
   socket.close(ec);
   acceptor.close(ec);
 

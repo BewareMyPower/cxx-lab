@@ -42,7 +42,6 @@ static void server_task() {
       printf("read complete: %s\n", ec.message().c_str());
       break;
     }
-    buf[len] = '\0';
     total_bytes += len;
   }
   printf("Received %zu bytes\n", total_bytes);
