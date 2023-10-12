@@ -1,3 +1,4 @@
+#include <array>
 #include <boost/asio.hpp>
 #include <iostream>
 #include <stdexcept>
@@ -18,9 +19,10 @@ int main(int argc, char* argv[]) {
 
   boost::system::error_code ec;
   while (true) {
-    char buf[1024];
-    constexpr auto kMaxReadSize = sizeof(buf) - 1;
-    auto len = socket.read_some(boost::asio::buffer(buf, kMaxReadSize), ec);
+    std::array<char, 1024> buf;
+    // Don't fill the last position to ensure a '\0' at the tail
+    auto len =
+        socket.read_some(boost::asio::buffer(buf.data(), buf.size() - 1), ec);
     if (ec) {
       if (ec == boost::asio::error::eof) {
         std::cout << ec.message() << std::endl;
@@ -29,12 +31,8 @@ int main(int argc, char* argv[]) {
         throw std::runtime_error("Failed to read " + ec.message());
       }
     }
-    if (len < sizeof(buf)) {
-      buf[len] = '\0';
-    } else {
-      throw std::runtime_error("read_some returns " + std::to_string(len));
-    }
-    std::cout << buf;
+    buf[len] = '\0';
+    std::cout << buf.data();
     std::cout.flush();
   }
   socket.close(ec);

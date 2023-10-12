@@ -4,6 +4,15 @@ project(asio-demo)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 14)
 
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message(STATUS "CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+        add_compile_definitions(_LIBCPP_ENABLE_ASSERTIONS)
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        add_compile_definitions(_GLIBCXX_ASSERTIONS)
+    endif()
+endif ()
+
 include(FetchContent)
 FetchContent_Declare(
     asio
